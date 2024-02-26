@@ -1,0 +1,174 @@
+<?php
+
+class Weapon {
+    public $damageRange;
+    public $attackSpeed;
+    public $range;
+   public function __construct($damageRange, $attackSpeed, $range) {
+        $this->damageRange = $damageRange;
+        $this->attackSpeed = $attackSpeed;
+        $this->range = $range;
+    }
+}
+
+class TwoHandedSword extends Weapon {
+    public function __construct() {
+        parent::__construct([21, 31], 1.0, 1);
+    }
+}
+
+class Bow extends Weapon {
+    public function __construct() {
+        parent::__construct([10, 20], 2.0, 15);
+    }
+}
+
+class Character {
+    public $name;
+    public $health;
+    public $weaponType;
+    public $attackSpeed;
+    public $movementSpeed;
+    public $physicalDamage;
+    public $defense;
+    public $hitChance;
+    public $accuracyBonus;
+    public $evasionBonus;
+    public $criticalChance;
+    
+    public function __construct($name, $health, $weaponType, $attackSpeed, $movementSpeed, $physicalDamage, $defense, $hitChance, $accuracyBonus, $evasionBonus, $criticalChance) {
+        $this->name = $name;
+        $this->health = $health;
+        $this->weaponType = $weaponType;
+        $this->attackSpeed = $attackSpeed;
+        $this->movementSpeed = $movementSpeed;
+        $this->physicalDamage = $physicalDamage;
+        $this->defense = $defense;
+        $this->hitChance = $hitChance;
+        $this->accuracyBonus = $accuracyBonus;
+        $this->evasionBonus = $evasionBonus;
+        $this->criticalChance = $criticalChance;
+    }
+        public function canAttack($distance) {
+            if ($this->weapon->range == 15 && $distance <= 15) {
+                return true;
+            } elseif ($this->weapon->range == 1 && $distance <= 3) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    
+    
+
+    
+    public function attack(Weapon $weapon) {
+        $damage = rand($weapon->damageRange[0], $weapon->damageRange[1]); // symulacja zadawania obrażeń
+        echo "{$this->name} atakuje przeciwnika z bronią {$this->weaponType} i zadaje {$damage} obrażeń!<br>";
+        return $damage;
+    }
+    // Ta metoda służy do zbliżania się do przeciwnika na podstawie określonej odległości.
+    public function moveCloser($distance) {
+    if ($this->weapon->range == 1 && $distance > 3) { // Sprawdza, czy broń ma zasięg 1 i odległość jest większa niż 3
+        $newDistance = $distance - $this->movementSpeed; // Oblicza nową odległość na podstawie szybkości poruszania się
+        if ($newDistance > 3) { // Jeśli nowa odległość jest większa niż 3
+            echo "{$this->name} zbliża się do przeciwnika o {$this->movementSpeed} jednostek odległości.<br>"; // Wyświetla informację o zbliżaniu się do przeciwnika
+            return $newDistance; // Zwraca nową odległość
+        } else { // Jeśli nowa odległość nie jest większa niż 3
+            echo "{$this->name} zaraz sie wpierdoli.<br>"; // Wyświetla informację o wystarczającej bliskości przeciwnika
+            return 3; // Zwraca odległość 3
+        }
+    } elseif ($this->weapon->range == 1 && $distance > 1) { // Jeśli broń ma zasięg 1 i odległość jest większa niż 1
+        $newDistance = $distance - $this->movementSpeed; // Oblicza nową odległość na podstawie szybkości poruszania się
+        if ($newDistance > 1) { // Jeśli nowa odległość jest większa niż 1
+            echo "{$this->name} zbliża się do przeciwnika o {$this->movementSpeed} jednostek odległości.<br>"; // Wyświetla informację o zbliżaniu się do przeciwnika
+            return $newDistance; // Zwraca nową odległość
+        } else { // Jeśli nowa odległość nie jest większa niż 1
+            echo "{$this->name} Walka w zwarciu!.<br>"; // Wyświetla informację o wystarczającej bliskości przeciwnika
+            return 1; // Zwraca odległość 1
+        }
+    } else { // Jeśli broń ma inny zasięg
+        echo "{$this->name} Walka w zwarciu!.<br>"; // Wyświetla informację o wystarczającej bliskości przeciwnika
+        return 0; // Zwraca odległość 0
+    }
+}
+}
+$twoHandedSword = new TwoHandedSword();
+$bow = new Bow();
+$player1 = new Character("Atakujacy->Wojownik", 200, "miecz dwuręczny", 0, 7.0, [21, 31], 50, 67, 5, 2, 3);
+$player1->weapon = $twoHandedSword;
+$player2 = new Character("Obrońca->Łucznik", 300, "łuk", 0.8, 20.0, [12, 20], 30, 80, 8, 3, 5);
+$player2->weapon = $bow;
+$distance = 40.0; // Początkowa wartość dystansu
+$rounds = 1;
+while ($player1->health > 0 && $player2->health > 0) {
+    echo "<h3>Runda {$rounds} | Odległość: $distance</h3>"; 
+    
+    // Zbliżanie się do przeciwnika
+    $distance = $player1->moveCloser($distance);
+    
+    // Logika ustalająca, który gracz atakuje pierwszy
+    $player1AttacksFirst = $player1->attackSpeed >= $player2->attackSpeed;
+
+    // Atak, jeśli obaj gracze są w zasięgu ataku
+    if ($player1->canAttack($distance) && $player2->canAttack($distance)) {
+        if ($player1AttacksFirst) {
+            $damageDealtByPlayer1 = $player1->attack($player1->weapon);
+            $player2->health -= $damageDealtByPlayer1;
+            
+            if ($player2->health <= 0) {
+                echo "{$player2->name} został pokonany!<br>";
+                break;
+            }
+            
+            $damageDealtByPlayer2 = $player2->attack($player2->weapon);
+            $player1->health -= $damageDealtByPlayer2;
+            
+            if ($player1->health <= 0) {
+                echo "{$player1->name} został pokonany!<br>";
+                break;
+            }
+        } else {
+            $damageDealtByPlayer2 = $player2->attack($player2->weapon);
+            $player1->health -= $damageDealtByPlayer2;
+            
+            if ($player1->health <= 0) {
+                echo "{$player1->name} został pokonany!<br>";
+                break;
+            }
+            
+            $damageDealtByPlayer1 = $player1->attack($player1->weapon);
+            $player2->health -= $damageDealtByPlayer1;
+            
+            if ($player2->health <= 0) {
+                echo "{$player2->name} został pokonany!<br>";
+                break;
+            }
+        }
+    } elseif ($player1->canAttack($distance)) {
+        // Atak tylko przez player1
+        $damageDealtByPlayer1 = $player1->attack($player1->weapon);
+        $player2->health -= $damageDealtByPlayer1;
+        if ($player2->health <= 0) {
+            echo "{$player2->name} został pokonany!<br>";
+            break;
+        }
+    } elseif ($player2->canAttack($distance)) {
+        // Atak tylko przez player2
+        $damageDealtByPlayer2 = $player2->attack($player2->weapon);
+        $player1->health -= $damageDealtByPlayer2;
+        if ($player1->health <= 0) {
+            echo "{$player1->name} został pokonany!<br>";
+            break;
+        }
+    }
+
+    $rounds++;
+}
+
+echo "<h3>Koniec walki!</h3>";
+echo "<p>Zdrowie Wojownika: {$player1->health}</p>";
+echo "<p>Zdrowie Łucznika: {$player2->health}</p>";
+
+
+?>
